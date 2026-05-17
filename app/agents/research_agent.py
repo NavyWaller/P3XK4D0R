@@ -1,19 +1,16 @@
 from app.services.openrouter_service import analyze_topic
+from app.services.web_fetcher import fetch_web_content
 
 async def research_agent(topic: str):
 
     prompt = f"""
-    Perform an OSINT-style preliminary research summary about:
+    You are an OSINT research assistant.
+
+    First, analyze the topic conceptually:
 
     {topic}
 
-    Focus on:
-    - key actors
-    - geopolitical relevance
-    - technological implications
-    - current strategic concerns
-
-    Keep response concise.
+    Then provide structured intelligence insights.
     """
 
     result = await analyze_topic(prompt)
