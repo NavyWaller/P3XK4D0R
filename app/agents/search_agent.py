@@ -1,15 +1,47 @@
-from duckduckgo_search import DDGS
+import os
+
+from serpapi import GoogleSearch
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+
 
 def search_agent(query: str, max_results: int = 5):
 
-    results = []
+    params = {
+        "engine": "google",
+        "q": query,
+        "api_key": SERPAPI_KEY,
+        "num": max_results
+    }
 
-    with DDGS() as ddgs:
-        for r in ddgs.text(query, max_results=max_results):
-            results.append({
+    try:
+
+        search = GoogleSearch(params)
+
+        results = search.get_dict()
+
+        organic_results = results.get("organic_results", [])
+
+        parsed_results = []
+
+        for r in organic_results:
+
+            parsed_results.append({
                 "title": r.get("title"),
-                "url": r.get("href"),
-                "snippet": r.get("body")
+                "url": r.get("link"),
+                "snippet": r.get("snippet")
             })
 
-    return results
+        return {
+            "results": parsed_results
+        }
+
+    except Exception as e:
+
+        return {
+            "error": str(e),
+            "results": []
+        }

@@ -2,6 +2,7 @@ import asyncio
 
 from app.agents.search_agent import search_agent
 from app.services.web_fetcher import fetch_web_content
+
 from app.agents.geopolitical_agent import geopolitical_agent
 from app.agents.technical_agent import technical_agent
 from app.agents.risk_agent import risk_agent
@@ -9,16 +10,55 @@ from app.agents.risk_agent import risk_agent
 
 async def coordinator_agent(topic: str):
 
-    # 1. buscar fuentes
-    search_results = search_agent(topic)
+    # SEARCH
+    search_data = search_agent(topic)
 
-    top_urls = [r["url"] for r in search_results[:3]]
+    if "error" in search_data:
 
-    # 2. extraer contenido web
-    web_tasks = [fetch_web_content(url) for url in top_urls]
-    web_contents = await asyncio.gather(*web_tasks)
+        return {
+            "topic": topic,
+            "search_error": search_data["error"]
+        }
 
-    # 3. análisis paralelo
+    search_results = search_data["results"]
+
+    # URLS
+    top_urls = [
+        r["url"]
+        for r in search_results
+        if r.get("url")
+    ][:3]
+
+    # FETCH
+    web_tasks = [
+        fetch_web_content(url)
+        for url in top_urls
+    ]
+
+    web_contents = await asyncio.gather(
+        *web_tasks,
+        return_exceptions=True
+    )
+
+    extracted_pages = []
+
+    for url, content in zip(top_urls, web_contents):
+
+        if isinstance(content, Exception):
+
+            extracted_pages.append({
+                "url": url,
+                "error": str(content)
+            })
+
+        else:
+
+            extracted_pages.append({
+                "url": url,
+                "content_preview": content[:1000]
+            })
+
+    # AGENTS
     geo_task = geopolitical_agent(topic)
     tech_task = technical_agent(topic)
     risk_task = risk_agent(topic)
@@ -31,9 +71,9 @@ async def coordinator_agent(topic: str):
 
     return {
         "topic": topic,
-        "sources": search_results,
-        "web_extracted": web_contents,
-        "geopolitical": geo,
-        "technical": tech,
-        "risk": risk
+        "search_results": search_results,
+        "extracted_pages": extracted_pages,
+        "geopolitical_analysis": geo,
+        "technical_analysis": tech,
+        "risk_analysis": risk
     }
