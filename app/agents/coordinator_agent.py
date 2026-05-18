@@ -7,6 +7,9 @@ from app.agents.geopolitical_agent import geopolitical_agent
 from app.agents.technical_agent import technical_agent
 from app.agents.risk_agent import risk_agent
 
+from app.agents.source_scoring_agent import source_scoring_agent
+from app.agents.synthesis_agent import synthesis_agent
+
 
 async def coordinator_agent(topic: str):
 
@@ -22,14 +25,13 @@ async def coordinator_agent(topic: str):
 
     search_results = search_data["results"]
 
-    # URLS
     top_urls = [
         r["url"]
         for r in search_results
         if r.get("url")
     ][:3]
 
-    # FETCH
+    # FETCH WEB CONTENT
     web_tasks = [
         fetch_web_content(url)
         for url in top_urls
@@ -41,6 +43,8 @@ async def coordinator_agent(topic: str):
     )
 
     extracted_pages = []
+
+    combined_content = ""
 
     for url, content in zip(top_urls, web_contents):
 
@@ -58,7 +62,9 @@ async def coordinator_agent(topic: str):
                 "content_preview": content[:1000]
             })
 
-    # AGENTS
+            combined_content += f"\n\nSOURCE: {url}\n{content[:3000]}"
+
+    # SPECIALIZED ANALYSIS
     geo_task = geopolitical_agent(topic)
     tech_task = technical_agent(topic)
     risk_task = risk_agent(topic)
@@ -69,11 +75,30 @@ async def coordinator_agent(topic: str):
         risk_task
     )
 
+    # SOURCE SCORING
+    scoring_tasks = [
+        source_scoring_agent(content[:3000])
+        for content in web_contents
+        if not isinstance(content, Exception)
+    ]
+
+    source_scores = await asyncio.gather(*scoring_tasks)
+
+    # FINAL SYNTHESIS using the source quality assessment
+    formatted_scores = "\n\n".join(source_scores)
+    synthesis = await synthesis_agent(
+        topic,
+        combined_content,
+        formatted_scores
+    )
+
     return {
         "topic": topic,
         "search_results": search_results,
         "extracted_pages": extracted_pages,
+        "source_evaluations": source_scores,
         "geopolitical_analysis": geo,
         "technical_analysis": tech,
-        "risk_analysis": risk
+        "risk_analysis": risk,
+        "final_synthesis": synthesis
     }
