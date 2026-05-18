@@ -20,6 +20,8 @@ from app.memory.vector_store import (
     search_similar_memories
 )
 
+from app.services.pdf_generator import generate_pdf_report
+
 async def coordinator_agent(topic: str):
 
     # PREVIOUS MEMORY
@@ -119,13 +121,15 @@ async def coordinator_agent(topic: str):
         sources=search_results
     )
     """
-    
     memory_context = str(similar_memories)
     synthesis = await synthesis_agent(
         topic,
         combined_content + "\n\nSEMANTIC MEMORY:\n" + memory_context,
         formatted_scores
     )
+
+    # Store semantic memory for future reports
+
     summary_embedding = await create_embedding(synthesis)
     store_memory(
         doc_id=str(uuid.uuid4()),
@@ -134,6 +138,17 @@ async def coordinator_agent(topic: str):
         embedding=summary_embedding
     )
    
+    # Final Intelligence Report generation (PDF)
+
+    pdf_path = generate_pdf_report(
+        topic=topic,
+        synthesis=synthesis,
+        geopolitical=geo,
+        technical=tech,
+        risk=risk,
+        sources=search_results
+    )
+
     return {
         "topic": topic,
         "search_results": search_results,
@@ -142,5 +157,6 @@ async def coordinator_agent(topic: str):
         "geopolitical_analysis": geo,
         "technical_analysis": tech,
         "risk_analysis": risk,
-        "final_synthesis": synthesis
+        "final_synthesis": synthesis,
+        "pdf_report": pdf_path
     }
