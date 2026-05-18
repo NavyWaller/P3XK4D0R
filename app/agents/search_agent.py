@@ -8,11 +8,35 @@ load_dotenv()
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 
 
-def search_agent(query: str, max_results: int = 5):
+def build_query(base_query, domains):
+
+    if not domains:
+        return base_query
+
+    domain_filters = " OR ".join(
+        [f"site:{d}" for d in domains]
+    )
+
+    return f"{base_query} ({domain_filters})"
+
+
+def search_agent(
+    query: str,
+    max_results: int = 5,
+    trusted_domains=None
+):
+
+    if trusted_domains is None:
+        trusted_domains = []
+
+    final_query = build_query(
+        query,
+        trusted_domains
+    )
 
     params = {
         "engine": "google",
-        "q": query,
+        "q": final_query,
         "api_key": SERPAPI_KEY,
         "num": max_results
     }
@@ -23,7 +47,10 @@ def search_agent(query: str, max_results: int = 5):
 
         results = search.get_dict()
 
-        organic_results = results.get("organic_results", [])
+        organic_results = results.get(
+            "organic_results",
+            []
+        )
 
         parsed_results = []
 
@@ -36,6 +63,7 @@ def search_agent(query: str, max_results: int = 5):
             })
 
         return {
+            "query_used": final_query,
             "results": parsed_results
         }
 

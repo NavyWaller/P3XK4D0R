@@ -35,7 +35,16 @@ async def coordinator_agent(topic: str):
     )
 
     # SEARCH
-    search_data = search_agent(topic)
+    trusted_domains = [
+        "reuters.com",
+        "nato.int",
+        "csis.org"
+    ]
+
+    search_data = search_agent(
+        topic,
+        trusted_domains=trusted_domains
+    )
 
     if "error" in search_data:
 
