@@ -9,9 +9,12 @@ from app.agents.risk_agent import risk_agent
 
 from app.agents.source_scoring_agent import source_scoring_agent
 from app.agents.synthesis_agent import synthesis_agent
-
+from app.memory.memory_store import add_memory, search_memory
 
 async def coordinator_agent(topic: str):
+
+    # PREVIOUS MEMORY USE 
+    previous_memory = search_memory(topic)
 
     # SEARCH
     search_data = search_agent(topic)
@@ -86,12 +89,21 @@ async def coordinator_agent(topic: str):
 
     # FINAL SYNTHESIS using the source quality assessment
     formatted_scores = "\n\n".join(source_scores)
+
+    memory_context = str(previous_memory)
+
     synthesis = await synthesis_agent(
         topic,
-        combined_content,
+        combined_content + "\n\nPREVIOUS MEMORY:\n" + memory_context,
         formatted_scores
     )
 
+    add_memory(
+        topic=topic,
+        summary=synthesis,
+        sources=search_results
+    )
+   
     return {
         "topic": topic,
         "search_results": search_results,
