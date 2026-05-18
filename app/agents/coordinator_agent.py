@@ -1,7 +1,7 @@
 import asyncio
 
 from app.agents.search_agent import search_agent
-from app.agents.web_fetcher import fetch_web_content
+from app.services.web_fetcher import fetch_web_content
 from app.agents.geopolitical_agent import geopolitical_agent
 from app.agents.technical_agent import technical_agent
 from app.agents.risk_agent import risk_agent
