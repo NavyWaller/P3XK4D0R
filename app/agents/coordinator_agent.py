@@ -11,10 +11,26 @@ from app.agents.source_scoring_agent import source_scoring_agent
 from app.agents.synthesis_agent import synthesis_agent
 from app.memory.memory_store import add_memory, search_memory
 
+import uuid
+
+from app.services.embedding_service import create_embedding
+
+from app.memory.vector_store import (
+    store_memory,
+    search_similar_memories
+)
+
 async def coordinator_agent(topic: str):
 
-    # PREVIOUS MEMORY USE 
-    previous_memory = search_memory(topic)
+    # PREVIOUS MEMORY
+
+    #previous_memory = search_memory(topic)
+
+    topic_embedding = await create_embedding(topic)
+
+    similar_memories = search_similar_memories(
+        topic_embedding
+    )
 
     # SEARCH
     search_data = search_agent(topic)
@@ -90,18 +106,32 @@ async def coordinator_agent(topic: str):
     # FINAL SYNTHESIS using the source quality assessment
     formatted_scores = "\n\n".join(source_scores)
 
+    """
     memory_context = str(previous_memory)
-
     synthesis = await synthesis_agent(
         topic,
         combined_content + "\n\nPREVIOUS MEMORY:\n" + memory_context,
         formatted_scores
     )
-
     add_memory(
         topic=topic,
         summary=synthesis,
         sources=search_results
+    )
+    """
+    
+    memory_context = str(similar_memories)
+    synthesis = await synthesis_agent(
+        topic,
+        combined_content + "\n\nSEMANTIC MEMORY:\n" + memory_context,
+        formatted_scores
+    )
+    summary_embedding = await create_embedding(synthesis)
+    store_memory(
+        doc_id=str(uuid.uuid4()),
+        topic=topic,
+        summary=synthesis,
+        embedding=summary_embedding
     )
    
     return {
