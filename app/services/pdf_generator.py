@@ -1,3 +1,5 @@
+import os
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -10,7 +12,6 @@ from reportlab.lib.pagesizes import letter
 
 from datetime import datetime
 
-
 def generate_pdf_report(
     topic,
     synthesis,
@@ -19,6 +20,8 @@ def generate_pdf_report(
     risk,
     sources
 ):
+
+    os.makedirs("reports", exist_ok=True)
 
     filename = f"reports/report_{datetime.utcnow().timestamp()}.pdf"
 
