@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from app.agents.coordinator_agent import coordinator_agent
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="P3XK4D0R API")
+
+app.mount(
+    "/reports",
+    StaticFiles(directory="reports"),
+    name="reports"
+)
 
 @app.get("/")
 def root():
