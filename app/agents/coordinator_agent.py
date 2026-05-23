@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 from app.agents.search_agent import search_agent
 from app.services.web_fetcher import fetch_web_content
@@ -24,8 +23,6 @@ from app.memory.vector_store import (
 from app.services.pdf_generator import generate_pdf_report
 
 async def coordinator_agent(topic: str):
-
-    BASE_URL = os.getenv("BASE_URL")
 
     # PREVIOUS MEMORY
 
@@ -170,5 +167,5 @@ async def coordinator_agent(topic: str):
         "technical_analysis": tech,
         "risk_analysis": risk,
         "final_synthesis": synthesis,
-        "pdf_report": f"{BASE_URL}/{pdf_path}"
+        "pdf_report": f"{pdf_path}"
     }
