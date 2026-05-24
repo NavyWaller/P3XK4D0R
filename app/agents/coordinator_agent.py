@@ -157,7 +157,7 @@ async def coordinator_agent(topic: str):
         sources=search_results
     )
     """
-    
+
     synthesis = await synthesis_agent(
         topic,
         combined_content + "\n\nSEMANTIC MEMORY:\n" + memory_context,
