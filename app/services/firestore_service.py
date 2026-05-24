@@ -12,12 +12,17 @@ firebase_json = json.loads(
 
 cred = credentials.Certificate(firebase_json)
 
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 def save_report_metadata(data):
 
-    db.collection("reports").add(data)
+    print("🔥 SAVING TO FIRESTORE")
+    print(data)
 
-    
+    result = db.collection("reports").add(data)
+
+    print("✅ FIRESTORE SAVE OK")
+    print(result)

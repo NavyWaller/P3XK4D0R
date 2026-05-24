@@ -6,7 +6,6 @@ collection = client.get_or_create_collection(
     name="p3xk4d0r_memory"
 )
 
-
 def store_memory(
     doc_id,
     topic,

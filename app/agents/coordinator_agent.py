@@ -9,16 +9,24 @@ from app.agents.risk_agent import risk_agent
 
 from app.agents.source_scoring_agent import source_scoring_agent
 from app.agents.synthesis_agent import synthesis_agent
-from app.memory.memory_store import add_memory, search_memory
 
 import uuid
 
 from app.services.embedding_service import create_embedding
 
+# Memory in Pinecone
+from app.memory.pinecone_memory import add_memory, search_memory  
+
+"""
+ --Memory in a file
+from app.memory.memory_store import add_memory, search_memory   
+
+--Memory in ChromaDB
 from app.memory.vector_store import (
     store_memory,
     search_similar_memories
 )
+"""
 
 from app.services.pdf_generator import generate_pdf_report
 
@@ -26,19 +34,25 @@ async def coordinator_agent(topic: str):
 
     # PREVIOUS MEMORY
 
-    #previous_memory = search_memory(topic)
+    #previous_memory = search_memory(topic)   --MEMORY IN FILE
 
     topic_embedding = await create_embedding(topic)
 
+""" MEMORY IN CHROMADB
     similar_memories = search_similar_memories(
+        topic_embedding
+    )
+"""
+    
+    #Memory in Pinecone
+    similar_memories = search_memory(
         topic_embedding
     )
 
     # SEARCH
     trusted_domains = [
-        "reuters.com",
-        "nato.int",
-        "csis.org"
+        "reuters.com", 
+        "cnn.com"
     ]
 
     search_data = search_agent(
@@ -158,6 +172,16 @@ async def coordinator_agent(topic: str):
         sources=search_results
     )
 
+    # Write report metadata in FireStore
+    try:
+        save_report_metadata({
+            "topic": topic,
+            "pdf_url": pdf_url
+        })
+    except Exception as e:
+        print("🔥 FIRESTORE ERROR")
+        print(str(e))
+    
     return {
         "topic": topic,
         "search_results": search_results,

@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from pinecone import Pinecone
 
@@ -11,11 +12,20 @@ index = pc.Index(
     host=os.getenv("PINECONE_INDEX_HOST")
 )
 
-def store_embedding(
-    vector_id,
+def store_memory(
+    topic,
+    content,
     embedding,
-    metadata
+    source_urls=None
 ):
+
+    vector_id = str(uuid.uuid4())
+
+    metadata = {
+        "topic": topic,
+        "content": content,
+        "source_urls": source_urls or []
+    }
 
     index.upsert([
         {
@@ -25,14 +35,15 @@ def store_embedding(
         }
     ])
 
-def semantic_search(
+def search_memory(
     embedding,
     top_k=5
 ):
 
-    return index.query(
+    results = index.query(
         vector=embedding,
         top_k=top_k,
         include_metadata=True
     )
 
+    return results
