@@ -27,7 +27,7 @@ def store_memory(
         "source_urls": source_urls or []
     }
 
-    index.upsert([
+    index.upsert(vectors=[
         {
             "id": vector_id,
             "values": embedding,
