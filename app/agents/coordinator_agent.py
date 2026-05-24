@@ -1,21 +1,21 @@
 import asyncio
+import uuid
 
 from app.agents.search_agent import search_agent
 from app.services.web_fetcher import fetch_web_content
-
 from app.agents.geopolitical_agent import geopolitical_agent
 from app.agents.technical_agent import technical_agent
 from app.agents.risk_agent import risk_agent
-
 from app.agents.source_scoring_agent import source_scoring_agent
 from app.agents.synthesis_agent import synthesis_agent
-
-import uuid
-
 from app.services.embedding_service import create_embedding
+from app.services.firestore_service import save_report_metadata
 
 # Memory in Pinecone
-from app.memory.pinecone_memory import add_memory, search_memory  
+from app.memory.pinecone_memory import (
+        store_memory, 
+        search_memory  
+)
 
 """
  --Memory in a file
@@ -32,7 +32,7 @@ from app.services.pdf_generator import generate_pdf_report
 
 async def coordinator_agent(topic: str):
 
-    # PREVIOUS MEMORY
+    # SEMANTIC MEMORY RETRIEVAL
 
     #previous_memory = search_memory(topic)   --MEMORY IN FILE
 
@@ -43,11 +43,25 @@ async def coordinator_agent(topic: str):
         topic_embedding
     )
 """
-    
     #Memory in Pinecone
     similar_memories = search_memory(
         topic_embedding
     )
+    
+    matches = similar_memories.get("matches", [])
+
+    memory_chunks = []
+
+    for match in matches:
+
+        metadata = match.get("metadata", {})
+
+        summary = metadata.get("summary", "")
+
+        if summary:
+            memory_chunks.append(summary)
+
+    memory_context = "\n\n".join(memory_chunks)
 
     # SEARCH
     trusted_domains = [
@@ -61,7 +75,6 @@ async def coordinator_agent(topic: str):
     )
 
     if "error" in search_data:
-
         return {
             "topic": topic,
             "search_error": search_data["error"]
@@ -144,7 +157,7 @@ async def coordinator_agent(topic: str):
         sources=search_results
     )
     """
-    memory_context = str(similar_memories)
+    
     synthesis = await synthesis_agent(
         topic,
         combined_content + "\n\nSEMANTIC MEMORY:\n" + memory_context,
@@ -176,7 +189,7 @@ async def coordinator_agent(topic: str):
     try:
         save_report_metadata({
             "topic": topic,
-            "pdf_url": pdf_url
+            "pdf_url": pdf_path
         })
     except Exception as e:
         print("🔥 FIRESTORE ERROR")
