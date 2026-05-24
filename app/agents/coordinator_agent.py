@@ -136,7 +136,7 @@ async def coordinator_agent(topic: str):
     summary_embedding = await create_embedding(synthesis)
     store_memory(
         topic=topic,
-        summary=synthesis,
+        content=synthesis,
         embedding=summary_embedding
     )
    
