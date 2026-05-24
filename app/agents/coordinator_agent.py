@@ -10,6 +10,7 @@ from app.agents.source_scoring_agent import source_scoring_agent
 from app.agents.synthesis_agent import synthesis_agent
 from app.services.embedding_service import create_embedding
 from app.services.firestore_service import save_report_metadata
+from app.services.pdf_generator import generate_pdf_report
 
 # Memory in Pinecone
 from app.memory.pinecone_memory import (
@@ -17,32 +18,12 @@ from app.memory.pinecone_memory import (
         search_memory  
 )
 
-"""
- --Memory in a file
-from app.memory.memory_store import add_memory, search_memory   
-
---Memory in ChromaDB
-from app.memory.vector_store import (
-    store_memory,
-    search_similar_memories
-)
-"""
-
-from app.services.pdf_generator import generate_pdf_report
-
 async def coordinator_agent(topic: str):
 
     # SEMANTIC MEMORY RETRIEVAL
-
-    #previous_memory = search_memory(topic)   --MEMORY IN FILE
-
+    
     topic_embedding = await create_embedding(topic)
 
-""" MEMORY IN CHROMADB
-    similar_memories = search_similar_memories(
-        topic_embedding
-    )
-"""
     #Memory in Pinecone
     similar_memories = search_memory(
         topic_embedding
@@ -143,20 +124,6 @@ async def coordinator_agent(topic: str):
 
     # FINAL SYNTHESIS using the source quality assessment
     formatted_scores = "\n\n".join(source_scores)
-
-    """
-    memory_context = str(previous_memory)
-    synthesis = await synthesis_agent(
-        topic,
-        combined_content + "\n\nPREVIOUS MEMORY:\n" + memory_context,
-        formatted_scores
-    )
-    add_memory(
-        topic=topic,
-        summary=synthesis,
-        sources=search_results
-    )
-    """
 
     synthesis = await synthesis_agent(
         topic,
