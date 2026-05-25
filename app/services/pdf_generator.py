@@ -65,13 +65,19 @@ def generate_pdf_report(
         )
     )
 
+    clean_synthesis = (
+        synthesis
+        .replace("\\n", "<br/>")
+    )
+
     story.append(
-        Paragraph(synthesis, styles["BodyText"])
+            Paragraph(clean_synthesis, styles["BodyText"])
     )
 
     story.append(Spacer(1, 20))
 
     # GEO
+    
     story.append(
         Paragraph(
             "Geopolitical Analysis",
@@ -79,13 +85,19 @@ def generate_pdf_report(
         )
     )
 
+    clean_GA = (
+        geopolitical
+        .replace("\\n", "<br/>")
+    )
+
     story.append(
-        Paragraph(geopolitical, styles["BodyText"])
+        Paragraph(clean_GA, styles["BodyText"])
     )
 
     story.append(Spacer(1, 20))
 
     # TECH
+
     story.append(
         Paragraph(
             "Technical Analysis",
@@ -93,13 +105,19 @@ def generate_pdf_report(
         )
     )
 
+    clean_TE = (
+        technical
+        .replace("\\n", "<br/>")
+    )
+
     story.append(
-        Paragraph(technical, styles["BodyText"])
+        Paragraph(clean_TE, styles["BodyText"])
     )
 
     story.append(Spacer(1, 20))
 
     # RISK
+    
     story.append(
         Paragraph(
             "Risk Assessment",
@@ -107,13 +125,19 @@ def generate_pdf_report(
         )
     )
 
+    clean_RI = (
+        risk
+        .replace("\\n", "<br/>")
+    )
+
     story.append(
-        Paragraph(risk, styles["BodyText"])
+        Paragraph(clean_RI, styles["BodyText"])
     )
 
     story.append(Spacer(1, 20))
 
     # SOURCES
+    
     story.append(
         Paragraph(
             "Sources",
