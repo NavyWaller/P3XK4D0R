@@ -67,7 +67,7 @@ def generate_pdf_report(
 
     clean_synthesis = (
         synthesis
-        .replace("\\n", "<br/>")
+        .replace("\n", "<br/>")
     )
 
     story.append(
@@ -87,7 +87,7 @@ def generate_pdf_report(
 
     clean_GA = (
         geopolitical
-        .replace("\\n", "<br/>")
+        .replace("\n", "<br/>")
     )
 
     story.append(
@@ -107,7 +107,7 @@ def generate_pdf_report(
 
     clean_TE = (
         technical
-        .replace("\\n", "<br/>")
+        .replace("\n", "<br/>")
     )
 
     story.append(
@@ -127,7 +127,7 @@ def generate_pdf_report(
 
     clean_RI = (
         risk
-        .replace("\\n", "<br/>")
+        .replace("\n", "<br/>")
     )
 
     story.append(
@@ -137,7 +137,7 @@ def generate_pdf_report(
     story.append(Spacer(1, 20))
 
     # SOURCES
-    
+
     story.append(
         Paragraph(
             "Sources",
