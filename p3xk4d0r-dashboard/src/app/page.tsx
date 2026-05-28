@@ -23,7 +23,7 @@ export default function Home() {
     try {
 
       const response = await fetch(
-        "https://p3xk4d0r.onrender.com/generate-report",
+        "https://p3xk4d0r.onrender.com/analyze",
         {
           method: "POST",
 
