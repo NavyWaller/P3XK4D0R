@@ -1,6 +1,8 @@
 import asyncio
 import uuid
 
+from httpx import request
+
 from app.agents.search_agent import search_agent
 from app.services.web_fetcher import fetch_web_content
 from app.agents.geopolitical_agent import geopolitical_agent
@@ -18,16 +20,21 @@ from app.memory.pinecone_memory import (
         search_memory  
 )
 
-async def coordinator_agent(topic: str):
+async def coordinator_agent(request):
 
     # SEMANTIC MEMORY RETRIEVAL
     
+    topic = request.topic
     topic_embedding = await create_embedding(topic)
 
     #Memory in Pinecone
-    similar_memories = search_memory(
-        topic_embedding
-    )
+    similar_memories = []
+
+    if request.use_memory:
+
+        similar_memories = search_memory(
+            topic_embedding
+        )
     
     matches = similar_memories.get("matches", [])
 
@@ -103,9 +110,18 @@ async def coordinator_agent(topic: str):
             combined_content += f"\n\nSOURCE: {url}\n{content[:3000]}"
 
     # SPECIALIZED ANALYSIS
-    geo_task = geopolitical_agent(topic)
-    tech_task = technical_agent(topic)
-    risk_task = risk_agent(topic)
+    
+    geo_task = ""
+    if request.use_geopolitical:
+        geo_task = await geopolitical_agent(topic)
+
+    tech_task = ""
+    if request.use_technical:
+        tech_task = await technical_agent(topic)
+
+    risk_task = ""
+    if request.use_risk:
+        risk_task = await risk_agent(topic)
 
     geo, tech, risk = await asyncio.gather(
         geo_task,
