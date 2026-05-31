@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import tasks
 import uuid
 
 from httpx import request
@@ -30,11 +31,11 @@ async def coordinator_agent(request):
     #Memory in Pinecone
     similar_memories = []
 
-    if request.use_memory:
+    #if request.use_memory:
 
-        similar_memories = search_memory(
-            topic_embedding
-        )
+    similar_memories = search_memory(
+        topic_embedding
+    )
     
     matches = similar_memories.get("matches", [])
 
@@ -111,24 +112,14 @@ async def coordinator_agent(request):
 
     # SPECIALIZED ANALYSIS
     
-    geo_task = ""
-    if request.use_geopolitical:
-        geo_task = await geopolitical_agent(topic)
-
-    tech_task = ""
-    if request.use_technical:
-        tech_task = await technical_agent(topic)
-
-    risk_task = ""
-    if request.use_risk:
-        risk_task = await risk_agent(topic)
-
-    geo, tech, risk = await asyncio.gather(
-        geo_task,
-        tech_task,
-        risk_task
-    )
-
+    tasks = [
+        geopolitical_agent(topic) if request.use_geopolitical else asyncio.sleep(0, result=""),
+        technical_agent(topic) if request.use_technical else asyncio.sleep(0, result=""),
+        risk_agent(topic) if request.use_risk else asyncio.sleep(0, result="")
+    ]
+    
+    geo, tech, risk = await asyncio.gather(*tasks)
+    
     # SOURCE SCORING
     scoring_tasks = [
         source_scoring_agent(content[:3000])

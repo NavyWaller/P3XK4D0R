@@ -38,15 +38,6 @@ class ReportRequest(BaseModel):
 @app.post("/analyze")
 async def analyze(request: ReportRequest):
 
-    return {
-        "status": "ok",
-        "topic": request.topic
-    }
-""""
-@app.post("/analyze")
-async def analyze(request: ReportRequest):
-
     result = await coordinator_agent(request)
 
     return result
-"""
